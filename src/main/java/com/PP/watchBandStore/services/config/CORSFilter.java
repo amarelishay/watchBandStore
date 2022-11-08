@@ -1,4 +1,4 @@
-package com.PP.watchBandStore.config;
+package com.PP.watchBandStore.services.config;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;

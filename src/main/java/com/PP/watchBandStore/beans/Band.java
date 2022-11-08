@@ -13,10 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Band {
-    @ToString.Exclude
-    @JsonIgnore
-    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.DETACH})
-    List<User> users;
     @Id
     @GeneratedValue
     private int id;

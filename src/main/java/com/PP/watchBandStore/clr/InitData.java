@@ -9,6 +9,7 @@ import com.PP.watchBandStore.services.BandService;
 import com.PP.watchBandStore.services.WelcomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component

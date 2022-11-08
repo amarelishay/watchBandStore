@@ -1,6 +1,7 @@
 package com.PP.watchBandStore.services;
 
 import com.PP.watchBandStore.beans.Band;
+import com.PP.watchBandStore.beans.CartItem;
 import com.PP.watchBandStore.beans.User;
 import com.PP.watchBandStore.repository.BandRepository;
 import com.PP.watchBandStore.repository.UserRepository;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,46 +22,64 @@ public class BandServiceImpl implements BandService {
     private final UserService userService;
 
     @Override
-    public List<Band> buy(int userId, List<Band> bands) throws BandStoreException {
+    public List<Band> buy(int userId) throws BandStoreException {
         User user = userRepository.findById(userId).orElseThrow(() -> new BandStoreException(ErrMsg.DontExistException));
-        user.getBands().addAll(bands);
+        List<CartItem> cartItems=user.getCartItems();
+        List<Band> bands=new ArrayList<>();
+        for (CartItem cartItem :cartItems){
+            bands.add(cartItem.getBand());
+        }
+        List<Band> userBands=user.getBands();
+        for (Band band:bands) {
+            userBands.add(band);
+        }
+        user.setBands(userBands);
         userService.updateUser(user);
         return bands;
     }
 
     @Override
-    public Set<Band> addToCart(int bandId, User user) throws BandStoreException {
-        if (user.getCart() == null) {
-            user.setCart(new HashSet<>());
+    public List<CartItem> addToCart(int bandId, User user) throws BandStoreException {
+        Band band = bandRepository.findById(bandId).orElseThrow(() -> new BandStoreException(ErrMsg.DontExistException));
+        for (CartItem cartItem1 : user.getCartItems()) {
+            if (cartItem1.getBand().getId() == bandId) {
+                if (cartItem1.getAmount() > band.getAmount()) {
+                    throw new BandStoreException(ErrMsg.DontExistException);
+                }
+                cartItem1.setAmount(cartItem1.getAmount() + 1);
+                return user.getCartItems();
+            }
+
         }
-        Set<Band> cart = user.getCart();
-        Band band=bandRepository.findById(bandId).orElseThrow(()->new BandStoreException(ErrMsg.DontExistException));
-        cart.add(band);
-        user.setCart(cart);
-        if (band.getUsers()==null){
-            band.setUsers(new ArrayList<User>());
+        user.getCartItems().add(new CartItem(band));
+        return user.getCartItems();
+
+    }
+
+
+    public List<CartItem> removeFromCart(int bandId, User user) throws BandStoreException {
+        Band band = bandRepository.findById(bandId).orElseThrow(() -> new BandStoreException(ErrMsg.DontExistException));
+        for (CartItem cartItem1 : user.getCartItems()) {
+            if (cartItem1.getBand().getId() == bandId) {
+                if (cartItem1.getAmount() ==0) {
+                    throw new BandStoreException(ErrMsg.DontExistException);
+                }
+                cartItem1.setAmount(cartItem1.getAmount() - 1);
+                return user.getCartItems();
+            }
+
         }
-        band.getUsers().add(user);
-        bandRepository.saveAndFlush(band);
-        userService.updateUser(user);
-        return user.getCart();
+        user.getCartItems().add(new CartItem(band));
+        return user.getCartItems();
+
     }
 
     @Override
-    public Set<Band> removeFromCart(Band band, User user) throws BandStoreException {
-        if (!user.getCart().remove(band)) {
-            throw new BandStoreException(ErrMsg.DontExistException);
-        }
-        userService.updateUser(user);
-        return user.getCart();
-    }
-
-    @Override
-    public Set<Band> getCart(int userId) throws BandStoreException {
+    public List<CartItem> getCart(int userId) throws BandStoreException {
         if (!userRepository.existsById(userId)) {
             throw new BandStoreException(ErrMsg.DontExistException);
         }
-        return userRepository.getById(userId).getCart();
+        return userRepository.getById(userId).getCartItems();
     }
 
     @Override

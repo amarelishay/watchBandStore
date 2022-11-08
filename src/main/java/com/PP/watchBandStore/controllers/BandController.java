@@ -1,6 +1,7 @@
 package com.PP.watchBandStore.controllers;
 
 import com.PP.watchBandStore.beans.Band;
+import com.PP.watchBandStore.beans.CartItem;
 import com.PP.watchBandStore.beans.User;
 import com.PP.watchBandStore.exceptions.SecurityException;
 import com.PP.watchBandStore.repository.UserRepository;
@@ -29,20 +30,20 @@ public class BandController {
     public List<Band> buyBands(@RequestHeader("Authorization") UUID token) throws SecurityException, BandStoreException {
         int userId = tokenManager.getUserId(token);
         User user = userRepository.getById(userId);
-        return bandService.buy(userId, (List<Band>) user.getCart());
+        return bandService.buy(userId);
     }
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
-    public Set<Band> addToCart(@RequestHeader("Authorization") UUID token,@RequestParam int id) throws SecurityException, BandStoreException {
+    public List<CartItem> addToCart(@RequestHeader("Authorization") UUID token, @RequestParam int id) throws SecurityException, BandStoreException {
         int userId = tokenManager.getUserId(token);
        return bandService.addToCart(id, userRepository.getById(userId));
     }
     @DeleteMapping("/remove")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Set<Band> removeFromCart(@RequestHeader("Authorization") UUID token,@RequestParam int id) throws SecurityException, BandStoreException {
+    public List<CartItem> removeFromCart(@RequestHeader("Authorization") UUID token,@RequestParam int id) throws SecurityException, BandStoreException {
         int userId = tokenManager.getUserId(token);
-        return bandService.removeFromCart(bandService.findBandById(id), userRepository.getById(userId));
+        return bandService.removeFromCart(id, userRepository.getById(userId));
     }
     @GetMapping("/bands")
     public List<Band> getAllBands() throws SecurityException {
@@ -54,8 +55,8 @@ public class BandController {
         return bandService.findBandById(id);
     }
     @GetMapping("/cart")
-    public Set<Band> getUserCart(@RequestHeader("Authorization") UUID token) throws SecurityException, BandStoreException {
-        Set<Band> bands=bandService.getCart(tokenManager.getUserId(token));
+    public List<CartItem> getUserCart(@RequestHeader("Authorization") UUID token) throws SecurityException, BandStoreException {
+        List<CartItem> bands=bandService.getCart(tokenManager.getUserId(token));
         return bands;
     }
     @GetMapping("/by_name/{name}")

@@ -1,4 +1,4 @@
-package com.PP.watchBandStore.config;
+package com.PP.watchBandStore.services.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
